@@ -22,8 +22,8 @@ SmartClean creates order out of chaos. It scans your cluttered directories, iden
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/smartclean.git
-cd smartclean
+git clone https://github.com/dixitdharmansh7/smart-organizer.git
+cd smart-organizer
 ```
 
 ### 2. Install Backend Dependencies

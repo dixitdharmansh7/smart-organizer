@@ -29,7 +29,7 @@ export function LandingPage() {
                     <Zap className="h-6 w-6 text-cyan-400" />
                     Smart<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Clean</span>
                 </div>
-                <a href="https://github.com/yourusername/smartclean" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/dixitdharmansh7/smart-organizer" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="rounded-full border-white/10 bg-white/5 hover:bg-white/10">
                         <Github className="mr-2 h-4 w-4" /> Star on GitHub
                     </Button>
@@ -54,7 +54,7 @@ export function LandingPage() {
                     </motion.p>
 
                     <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                        <a href="https://github.com/yourusername/smartclean" target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/dixitdharmansh7/smart-organizer" target="_blank" rel="noopener noreferrer">
                             <Button className="h-14 px-8 text-lg rounded-xl bg-white text-black hover:bg-cyan-50 shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 transition-all w-full sm:w-auto">
                                 <Github className="mr-2 h-5 w-5" /> View on GitHub
                             </Button>
