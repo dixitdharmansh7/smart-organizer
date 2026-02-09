@@ -86,12 +86,14 @@ class SmartClassifier:
 # SmartCleaner
 
 class SmartCleaner:
-    def __init__(self, base_path: Path, simulate=False, report=False, ai_mode=False, remove_empty=True):
+    def __init__(self, base_path: Path, simulate=False, report=False, ai_mode=False, remove_empty=True, on_log=None, on_progress=None):
         self.base_path = base_path
         self.simulate = simulate
         self.report = report
         self.ai_mode = ai_mode
         self.remove_empty = remove_empty
+        self.on_log = on_log
+        self.on_progress = on_progress
 
         self.cleaned_data: Dict[str, List[str]] = {}
         self.duplicates_removed = 0
@@ -104,8 +106,14 @@ class SmartCleaner:
         if ai_mode:
             self.ai = SmartClassifier()
 
-        console.print(f"[cyan]🧩 Cleaning Folder:[/cyan] {base_path}")
-        console.print(f"[cyan]🧠 AI Mode:[/cyan] {'Enabled' if ai_mode else 'Disabled'}")
+        self._log(f"[cyan]🧩 Cleaning Folder:[/cyan] {base_path}")
+        self._log(f"[cyan]🧠 AI Mode:[/cyan] {'Enabled' if ai_mode else 'Disabled'}")
+
+    def _log(self, message: str):
+        if self.on_log:
+            self.on_log(message)
+        else:
+            console.print(message)
 
     def _setup_logging(self):
         log_dir = Path.home() / "Desktop" / "OrganizationLogs"
@@ -142,7 +150,9 @@ class SmartCleaner:
             self.space_saved += path.stat().st_size
             if not self.simulate:
                 path.unlink()
-            logging.info(f"🗑️ Duplicate deleted: {path.name} (duplicate of {orig.name})")
+            msg = f"🗑️ Duplicate deleted: {path.name} (duplicate of {orig.name})"
+            logging.info(msg)
+            self._log(f"[yellow]{msg}[/yellow]")
             return True
         else:
             self.hash_cache[file_hash] = path
@@ -164,22 +174,36 @@ class SmartCleaner:
 
         self.cleaned_data.setdefault(category, []).append(path.name)
         logging.info(f"{path.name} → {category}")
+        
+        # Report progress if callback exists
+        if self.on_progress:
+            self.on_progress(path.name, category)
 
     def clean(self):
         files = [f for f in self.base_path.rglob("*") if f.is_file()]
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for _ in track(as_completed([ex.submit(self._move_file, f) for f in files]), total=len(files), description="Cleaning..."):
-                pass
+        total_files = len(files)
+        
+        if not self.on_progress:
+            # Use rich.track if no callback
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                for _ in track(as_completed([ex.submit(self._move_file, f) for f in files]), total=total_files, description="Cleaning..."):
+                    pass
+        else:
+             # Use simple iteration with callback
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                futures = [ex.submit(self._move_file, f) for f in files]
+                for future in as_completed(futures):
+                    future.result() # Raise exceptions if any
 
         if self.remove_empty:
             self._remove_empty_dirs()
 
         self._generate_report()
 
-        console.print(f"[green]✅ Cleaning Complete![/green]")
-        console.print(f"[yellow]Duplicates removed:[/yellow] {self.duplicates_removed}")
-        console.print(f"[yellow]Space saved:[/yellow] {round(self.space_saved / (1024*1024), 2)} MB")
-        console.print(f"[dim]Log file saved at {self.log_file}[/dim]")
+        self._log(f"[green]✅ Cleaning Complete![/green]")
+        self._log(f"[yellow]Duplicates removed:[/yellow] {self.duplicates_removed}")
+        self._log(f"[yellow]Space saved:[/yellow] {round(self.space_saved / (1024*1024), 2)} MB")
+        self._log(f"[dim]Log file saved at {self.log_file}[/dim]")
 
     def _remove_empty_dirs(self):
         for dirpath, dirnames, filenames in os.walk(self.base_path, topdown=False):

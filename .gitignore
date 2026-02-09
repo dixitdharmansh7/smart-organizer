@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Logs
+*.log
